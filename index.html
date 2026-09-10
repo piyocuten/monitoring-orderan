@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Website For Monitoring</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="flower.png">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            pageBg: '#F5F3E6',
+            cardBg: '#FFFDF0',
+            cardBorder: '#EADBBD',
+            pillDate: '#4E5072',
+            badgeProgressBg: '#FDE68A',
+            badgeProgressText: '#B45309',
+            badgeCompleteBg: '#A3B86C',
+            badgeCompleteText: '#FFFFFF',
+            accentText: '#4A4B5E',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F5F3E6;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #D1C9AF;
+      border-radius: 999px;
+    }
+    .custom-shadow {
+      box-shadow: 0 4px 15px -2px rgba(100, 90, 70, 0.08);
+    }
+  </style>
+</head>
+<body class="bg-pageBg text-slate-800 min-h-screen font-sans pb-16 antialiased">
+
+  <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
+    <div class="flex flex-col lg:flex-row items-center justify-between gap-4 border-b border-stone-300/60 pb-5">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-wider text-[#3C3D52] uppercase text-center lg:text-left">
+          Website For Monitoring
+        </h1>
+        <p class="text-xs sm:text-sm text-stone-500 mt-0.5 text-center lg:text-left flex items-center justify-center lg:justify-start gap-1.5">
+          <span>Sistem Monitoring Realtime & Otomatis</span>
+        </p>
+        <p class="text-xs sm:text-sm text-stone-500 mt-0.5 text-center lg:text-left flex items-center justify-center lg:justify-start gap-1.5">
+          <span>anti kelupaan catet orderan !</span>
+        </p>
+      </div>
+
+      <!-- FILTER & ACTION CONTAINER -->
+      <div class="flex flex-wrap items-center justify-center lg:justify-end gap-2.5 w-full lg:w-auto">
+        
+        <!-- Filter Tanggal Order -->
+        <div class="flex items-center gap-1.5 bg-cardBg border border-stone-300 rounded-xl px-2.5 py-1.5 shadow-sm">
+          <i data-lucide="calendar" class="w-4 h-4 text-stone-500"></i>
+          <span class="text-xs font-bold text-stone-600 hidden sm:inline">Tgl:</span>
+          <input type="date" id="dateFilter" onchange="filterCards()" class="bg-transparent text-stone-700 text-xs font-semibold outline-none cursor-pointer">
+        </div>
+
+        <!-- Filter Status Dropdown -->
+        <select id="statusFilter" onchange="filterCards()" class="bg-cardBg border border-stone-300 text-stone-700 text-xs sm:text-sm rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-stone-400 font-semibold cursor-pointer shadow-sm">
+          <option value="ALL">Semua Status</option>
+          <option value="IN PROGRESS">In Progress</option>
+          <option value="COMPLETE">Complete</option>
+        </select>
+
+        <!-- Reset Filter Button -->
+        <button onclick="resetFilters()" title="Reset Filter" class="bg-stone-200 hover:bg-stone-300 text-stone-700 p-2 rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Tambah Barang Button -->
+        <button onclick="openModal()" class="flex items-center justify-center gap-2 bg-[#4E5072] hover:bg-[#3E405C] text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl shadow-md transition-all active:scale-95">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Tambah Barang</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div id="cardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+      <!-- Cards injected dynamically via JS -->
+    </div>
+  </main>
+
+  <!-- MODAL FORM -->
+  <div id="itemModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity duration-200">
+    <div class="bg-cardBg border border-cardBorder rounded-[24px] max-w-xl w-full max-h-[90vh] overflow-y-auto custom-shadow p-6 relative">
+      
+      <!-- Close Button -->
+      <button onclick="closeModal()" class="absolute top-5 right-5 text-stone-400 hover:text-stone-700 p-1 rounded-full hover:bg-stone-200/50 transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <h2 id="modalTitle" class="text-xl font-bold text-[#3C3D52] mb-5 tracking-wide">
+        [TAMBAH BARANG]
+      </h2>
+
+      <form id="itemForm" onsubmit="handleFormSubmit(event)" class="space-y-4 text-xs sm:text-sm">
+        <input type="hidden" id="editItemId" value="">
+
+        <!-- Channel / Platform Dropdown -->
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">Order Lewat</label>
+          <div class="relative">
+            <select id="channel" required class="w-full bg-white border border-stone-300 text-stone-800 rounded-xl px-3.5 py-2.5 appearance-none focus:outline-none focus:ring-2 focus:ring-stone-400 font-medium">
+              <option value="telegram">Telegram</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="x">X (Twitter)</option>
+            </select>
+            <i data-lucide="chevron-down" class="w-4 h-4 absolute right-3 top-3 text-stone-400 pointer-events-none"></i>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Tgl Order -->
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Tgl Order</label>
+            <input type="date" id="tglOrder" required onchange="calculateSync()" class="w-full bg-white border border-stone-300 text-stone-800 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400 font-medium">
+          </div>
+
+          <!-- First Hand -->
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">First Hand / Maker</label>
+            <input type="text" id="firstHand" placeholder="Misal: vyota" required class="w-full bg-white border border-stone-300 text-stone-800 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400 font-medium">
+          </div>
+        </div>
+
+        <!-- No HP / ID Buyer -->
+        <div>
+          <label class="block font-bold text-stone-700 mb-1">No HP / ID Buyer</label>
+          <input type="text" id="buyer" placeholder="Misal: 085285595188 / @username" required class="w-full bg-white border border-stone-300 text-stone-800 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400 font-medium">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Nama Aplikasi -->
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Nama Aplikasi</label>
+            <input type="text" id="aplikasi" placeholder="Misal: chatgpt / netflix" required class="w-full bg-white border border-stone-300 text-stone-800 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400 font-medium">
+          </div>
+
+          <!-- Plan -->
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Plan</label>
+            <input type="text" id="plan" placeholder="Misal: go / 1p1u" required class="w-full bg-white border border-stone-300 text-stone-800 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400 font-medium">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Jenis -->
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Jenis</label>
+            <select id="jenis" class="w-full bg-white border border-stone-300 text-stone-800 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400 font-medium">
+              <option value="sharing">sharing</option>
+              <option value="private">private</option>
+            </select>
+          </div>
+
+          <!-- Durasi -->
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Durasi</label>
+            <input type="text" id="durasi" placeholder="Misal: 1 bulan / 20 hari" required oninput="calculateSync()" class="w-full bg-white border border-stone-300 text-stone-800 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400 font-medium">
+          </div>
+
+          <!-- Qty -->
+          <div>
+            <label class="block font-bold text-stone-700 mb-1">Qty</label>
+            <input type="number" id="qty" value="1" min="1" required class="w-full bg-white border border-stone-300 text-stone-800 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400 font-medium">
+          </div>
+        </div>
+
+        <!-- Live Sync Calculation Preview Box -->
+        <div class="bg-stone-100 p-3.5 rounded-xl border border-stone-200 text-stone-700 space-y-1">
+          <div class="flex justify-between items-center font-semibold">
+            <span>Hasil Sinkronisasi Sisa Durasi:</span>
+            <span id="previewSisaDays" class="font-bold text-indigo-700">18 Hari</span>
+          </div>
+          <div class="flex justify-between items-center text-[11px] text-stone-500">
+            <span>Estimasi Tgl Kedaluwarsa: <strong id="previewEndDate" class="text-stone-700">27 Sep 2026</strong></span>
+            <span>Status Otomatis: <strong id="previewStatus" class="text-amber-700 font-bold">IN PROGRESS</strong></span>
+          </div>
+        </div>
+
+        <!-- Collapsible More Detail Section in Form -->
+        <div class="border-t border-stone-300/70 pt-3 mt-4">
+          <div class="flex items-center justify-between cursor-pointer py-1" onclick="toggleFormMoreDetail()">
+            <span class="font-bold text-stone-700">More detail</span>
+            <i data-lucide="chevron-down" id="formMoreChevron" class="w-4 h-4 text-stone-500 transition-transform"></i>
+          </div>
+          
+          <div id="formMoreContent" class="hidden space-y-3 mt-2 bg-stone-100/60 p-3.5 rounded-xl border border-stone-200">
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Merk Device</label>
+              <input type="text" id="merkDevice" placeholder="Misal: samsung A05" class="w-full bg-white border border-stone-300 text-stone-800 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400 font-medium">
+            </div>
+            <div>
+              <label class="block font-bold text-stone-700 mb-1">Lokasi</label>
+              <input type="text" id="lokasi" placeholder="Misal: jakarta pusat" class="w-full bg-white border border-stone-300 text-stone-800 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400 font-medium">
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="flex justify-end pt-4">
+          <button type="submit" class="bg-[#545275] hover:bg-[#434160] text-white font-bold px-8 py-2.5 rounded-xl shadow transition-all active:scale-95">
+            simpan
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // System reference date: Current Date set to 7 September 2026
+    const TODAY_DATE = new Date('2026-09-07T00:00:00');
+
+    // Default mock dataset
+    const initialMockData = [
+      {
+        id: "1",
+        channel: "whatsapp",
+        tglOrder: "2026-08-07",
+        firstHand: "cen",
+        buyer: "085285595188",
+        aplikasi: "netflix",
+        plan: "1p1u",
+        jenis: "sharing",
+        durasi: "1 bulan",
+        qty: 1,
+        merkDevice: "samsung A05",
+        lokasi: "jakarta pusat",
+        expanded: false
+      },
+      {
+        id: "2",
+        channel: "telegram",
+        tglOrder: "2026-08-07",
+        firstHand: "cen",
+        buyer: "085285595188",
+        aplikasi: "netflix",
+        plan: "1p1u",
+        jenis: "sharing",
+        durasi: "1 bulan",
+        qty: 1,
+        merkDevice: "iphone 13",
+        lokasi: "bandung",
+        expanded: false
+      },
+      {
+        id: "3",
+        channel: "telegram",
+        tglOrder: "2026-08-07",
+        firstHand: "cen",
+        buyer: "@rheaimut",
+        aplikasi: "netflix",
+        plan: "1p1u",
+        jenis: "sharing",
+        durasi: "1 bulan",
+        qty: 1,
+        merkDevice: "oppo reno",
+        lokasi: "surabaya",
+        expanded: false
+      },
+      {
+        id: "4",
+        channel: "x",
+        tglOrder: "2026-08-07",
+        firstHand: "cen",
+        buyer: "@rhaenylmuddd",
+        aplikasi: "netflix",
+        plan: "1p1u",
+        jenis: "sharing",
+        durasi: "1 bulan",
+        qty: 1,
+        merkDevice: "macbook air",
+        lokasi: "medan",
+        expanded: false
+      },
+      {
+        id: "5",
+        channel: "x",
+        tglOrder: "2026-09-05",
+        firstHand: "cen",
+        buyer: "085285595188",
+        aplikasi: "chatgpt",
+        plan: "go",
+        jenis: "sharing",
+        durasi: "20 hari",
+        qty: 1,
+        merkDevice: "samsung A05",
+        lokasi: "jakarta pusat",
+        expanded: true
+      },
+      {
+        id: "6",
+        channel: "whatsapp",
+        tglOrder: "2026-08-31",
+        firstHand: "cen",
+        buyer: "085285595188",
+        aplikasi: "netflix",
+        plan: "1p1u",
+        jenis: "sharing",
+        durasi: "1 bulan",
+        qty: 1,
+        merkDevice: "vivo y20",
+        lokasi: "semarang",
+        expanded: false
+      },
+      {
+        id: "7",
+        channel: "whatsapp",
+        tglOrder: "2026-09-02",
+        firstHand: "cen",
+        buyer: "085285595188",
+        aplikasi: "netflix",
+        plan: "1p1u",
+        jenis: "sharing",
+        durasi: "10 hari",
+        qty: 1,
+        merkDevice: "realme 8",
+        lokasi: "jogja",
+        expanded: false
+      },
+      {
+        id: "8",
+        channel: "telegram",
+        tglOrder: "2026-08-01",
+        firstHand: "cen",
+        buyer: "085285595188",
+        aplikasi: "netflix",
+        plan: "1p1u",
+        jenis: "sharing",
+        durasi: "30 hari",
+        qty: 1,
+        merkDevice: "xiaomi redmi",
+        lokasi: "bekasi",
+        expanded: false
+      }
+    ];
+
+    // Load items from local storage or set initial data
+    let items = JSON.parse(localStorage.getItem('monitoringItems')) || initialMockData;
+
+    function saveState() {
+      localStorage.setItem('monitoringItems', JSON.stringify(items));
+    }
+
+    function parseDurationToDays(durasiStr) {
+      if (!durasiStr) return 0;
+      const normalized = durasiStr.toLowerCase().trim();
+      const numMatch = normalized.match(/\d+/);
+      if (!numMatch) return 0;
+      const num = parseInt(numMatch[0], 10);
+
+      if (normalized.includes('bulan') || normalized.includes('month')) {
+        return num * 30;
+      } else if (normalized.includes('minggu') || normalized.includes('week')) {
+        return num * 7;
+      } else if (normalized.includes('tahun') || normalized.includes('year')) {
+        return num * 365;
+      }
+      return num;
+    }
+
+    function calculateSyncData(tglOrderStr, durasiStr) {
+      if (!tglOrderStr) return { sisaHari: 0, endDate: TODAY_DATE, status: 'COMPLETE' };
+
+      const orderDate = new Date(tglOrderStr + 'T00:00:00');
+      const totalDays = parseDurationToDays(durasiStr);
+
+      const endDate = new Date(orderDate);
+      endDate.setDate(endDate.getDate() + totalDays);
+
+      const timeDiff = endDate.getTime() - TODAY_DATE.getTime();
+      const sisaHari = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+      const status = sisaHari > 0 ? 'IN PROGRESS' : 'COMPLETE';
+
+      return {
+        sisaHari: sisaHari > 0 ? sisaHari : 0,
+        endDate,
+        status,
+        totalDays
+      };
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '07 SEP 2026';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const months = ['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'];
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = months[d.getMonth()];
+      const year = d.getFullYear();
+      return `${day} ${month} ${year}`;
+    }
+
+    function getChannelIcon(channel) {
+      const c = channel.toLowerCase();
+      if (c === 'telegram') {
+        return `
+          <div class="w-12 h-12 rounded-2xl bg-[#52A5E4] flex items-center justify-center text-white shadow-sm shrink-0">
+            <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.07-.78 4.18-1.82 6.97-3.02 8.38-3.61 3.98-1.66 4.81-1.95 5.35-1.96.12 0 .38.03.55.17.14.12.18.28.2.4.02.11.02.26.01.37z"/>
+            </svg>
+          </div>
+        `;
+      } else if (c === 'whatsapp') {
+        return `
+          <div class="w-12 h-12 rounded-2xl bg-[#25D366] flex items-center justify-center text-white shadow-sm shrink-0">
+            <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24">
+              <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.964 9.964 0 001.333 4.993L2 22l5.233-1.237a9.954 9.954 0 004.779 1.221h.004c5.505 0 9.988-4.478 9.989-9.985 0-2.667-1.037-5.176-2.922-7.062A9.925 9.925 0 0012.012 2zm5.835 14.161c-.247.696-1.442 1.328-1.98 1.385-.494.053-1.129.239-3.645-.798-2.673-1.102-4.385-3.83-4.518-4.007-.133-.177-1.085-1.442-1.085-2.75 0-1.308.685-1.952.932-2.217.247-.265.54-.332.72-.332.18 0 .36.003.517.01.168.008.394-.064.617.47.247.59.845 2.062.918 2.213.073.151.122.332.023.53-.099.198-.148.322-.294.498-.147.177-.31.394-.442.53-.147.147-.3.308-.129.603.171.295.762 1.258 1.637 2.038 1.125 1.002 2.072 1.313 2.367 1.46.295.147.467.123.638-.074.172-.198.736-.856.932-1.15.198-.295.394-.247.662-.147.268.098 1.704.803 1.999.951.295.148.492.222.565.345.073.123.073.712-.174 1.408z"/>
+            </svg>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="w-12 h-12 rounded-2xl bg-black flex items-center justify-center text-white shadow-sm shrink-0">
+            <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+          </div>
+        `;
+      }
+    }
+
+    function renderCards() {
+      const grid = document.getElementById('cardGrid');
+      const statusFilter = document.getElementById('statusFilter').value;
+      const dateFilter = document.getElementById('dateFilter').value; // YYYY-MM-DD
+
+      grid.innerHTML = '';
+
+      // 1. Render "+ Buat Reminder Baru" Card first
+      const createNewCardHtml = `
+        <div onclick="openModal()" class="bg-cardBg border-2 border-dashed border-stone-300 rounded-[24px] p-8 flex flex-col items-center justify-center min-h-[220px] cursor-pointer hover:border-stone-400 hover:bg-[#FAF8E9] transition-all group custom-shadow text-center">
+          <div class="w-12 h-12 rounded-full bg-stone-200/60 text-stone-600 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-stone-300/70 transition">
+            <i data-lucide="plus" class="w-6 h-6"></i>
+          </div>
+          <span class="font-bold text-stone-600 text-sm tracking-wide group-hover:text-stone-800">
+            buat reminder baru
+          </span>
+        </div>
+      `;
+      grid.insertAdjacentHTML('beforeend', createNewCardHtml);
+
+      // Filter and compute synchronized attributes for each item
+      items.forEach(item => {
+        // Compute synchronized sisa hari & status real-time
+        const sync = calculateSyncData(item.tglOrder, item.durasi);
+        item.sisaDurasiHari = sync.sisaHari;
+        item.status = sync.status;
+
+        // Apply Status Filter
+        if (statusFilter !== 'ALL' && item.status !== statusFilter) return;
+
+        // Apply Date Filter (Filter berdasarkan Tanggal Order)
+        if (dateFilter && item.tglOrder !== dateFilter) return;
+
+        const isComplete = item.status === 'COMPLETE';
+        const dateFormatted = formatDate(item.tglOrder);
+
+        // Badge styles
+        const badgeBgClass = isComplete ? 'bg-badgeCompleteBg text-badgeCompleteText' : 'bg-badgeProgressBg text-badgeProgressText';
+
+        // Summary Line (App + Plan + Durasi + Qty)
+        const summaryText = `${item.aplikasi.toUpperCase()} ${item.plan.toUpperCase()} ${item.durasi.toUpperCase()} – ${item.qty}`;
+
+        // Expanded text strikethrough styling for COMPLETE items
+        const expandedTextClass = isComplete ? 'line-through text-stone-500 font-normal' : 'font-semibold text-stone-800';
+
+        const cardHtml = `
+          <div class="bg-cardBg border border-cardBorder rounded-[24px] p-5 custom-shadow flex flex-col justify-between transition-all hover:shadow-md">
+            <div>
+              <!-- Top Row: Date Pill & Status Pill -->
+              <div class="flex items-center justify-between gap-2 mb-4">
+                <span class="bg-pillDate text-white text-[11px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">
+                  ${dateFormatted}
+                </span>
+                <span class="${badgeBgClass} text-[11px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-wider">
+                  ${item.status}
+                </span>
+              </div>
+
+              <div class="border-t border-stone-300/50 pt-3"></div>
+
+              <!-- Main Middle Content -->
+              <div class="flex items-center gap-3 mb-3">
+                ${getChannelIcon(item.channel)}
+                <div class="text-xs sm:text-sm font-semibold text-stone-700 leading-tight">
+                  <div>fh : <span class="text-stone-900">${item.firstHand}</span></div>
+                  <div class="mt-0.5">buyer : <span class="text-stone-900">${item.buyer}</span></div>
+                </div>
+              </div>
+
+              <!-- Collapsed Summary OR Expanded Details -->
+              ${!item.expanded ? `
+                <!-- Collapsed View -->
+                <div class="pt-1 pb-2">
+                  <p class="font-bold text-xs sm:text-sm text-stone-800 uppercase tracking-wide">
+                    ${summaryText}
+                  </p>
+                  <div class="border-b border-stone-300/60 my-2"></div>
+                  <button onclick="toggleExpand('${item.id}')" class="w-full flex justify-end text-stone-600 hover:text-stone-900 focus:outline-none pt-1">
+                    <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                  </button>
+                </div>
+              ` : `
+                <!-- Expanded "More Detail" View -->
+                <div class="space-y-1 text-xs sm:text-sm pt-1 pb-2">
+                  <p class="${expandedTextClass}">aplikasi : <span class="normal-case">${item.aplikasi}</span></p>
+                  <p class="${expandedTextClass}">plan : <span class="normal-case">${item.plan}</span></p>
+                  <p class="${expandedTextClass}">jenis : <span class="normal-case">${item.jenis}</span></p>
+                  <p class="${expandedTextClass}">durasi : <span class="normal-case">${item.durasi}</span></p>
+                  <p class="${expandedTextClass}">sisa durasi : <span class="normal-case">${item.sisaDurasiHari} hari ${isComplete ? '(Expired)' : ''}</span></p>
+                  <p class="${expandedTextClass}">qty : <span>${item.qty}</span></p>
+                  <p class="${expandedTextClass}">merk device : <span class="normal-case">${item.merkDevice || '-'}</span></p>
+                  <p class="${expandedTextClass}">lokasi : <span class="normal-case">${item.lokasi || '-'}</span></p>
+
+                  <div class="border-b border-stone-300/60 my-2"></div>
+                  <button onclick="toggleExpand('${item.id}')" class="w-full flex justify-end text-stone-600 hover:text-stone-900 focus:outline-none pt-1">
+                    <i data-lucide="chevron-up" class="w-5 h-5"></i>
+                  </button>
+                </div>
+              `}
+            </div>
+
+            <!-- Card Footer Actions: BADGE SISA HARI (KIRI) & BUTTONS (KANAN) -->
+            <div class="border-t border-stone-300/60 pt-3 mt-1 flex items-center justify-between">
+              <!-- Pill Badge Sisa Hari -->
+              <span class="bg-[#FCE7F3] text-[#DB2777] text-xs font-bold px-3 py-1.5 rounded-full lowercase shadow-xs">
+                sisa ${item.sisaDurasiHari} hari
+              </span>
+
+              <!-- Action Buttons -->
+              <div class="flex items-center gap-2 text-stone-600">
+                <button onclick="deleteItem('${item.id}')" title="Hapus" class="hover:text-red-600 transition p-1 rounded-lg hover:bg-stone-200/50">
+                  <i data-lucide="trash-2" class="w-5 h-5"></i>
+                </button>
+                <button onclick="openModal('${item.id}')" title="Edit" class="hover:text-indigo-600 transition p-1 rounded-lg hover:bg-stone-200/50">
+                  <i data-lucide="edit-3" class="w-5 h-5"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        grid.insertAdjacentHTML('beforeend', cardHtml);
+      });
+
+      // Re-initialize Lucide Icons
+      lucide.createIcons();
+    }
+
+    function toggleExpand(id) {
+      items = items.map(item => item.id === id ? { ...item, expanded: !item.expanded } : item);
+      saveState();
+      renderCards();
+    }
+
+    function deleteItem(id) {
+      items = items.filter(item => item.id !== id);
+      saveState();
+      renderCards();
+    }
+
+    function filterCards() {
+      renderCards();
+    }
+
+    function resetFilters() {
+      document.getElementById('statusFilter').value = 'ALL';
+      document.getElementById('dateFilter').value = '';
+      renderCards();
+    }
+
+    function calculateSync() {
+      const tglOrder = document.getElementById('tglOrder').value;
+      const durasi = document.getElementById('durasi').value;
+
+      const sync = calculateSyncData(tglOrder, durasi);
+
+      const previewSisaDays = document.getElementById('previewSisaDays');
+      const previewEndDate = document.getElementById('previewEndDate');
+      const previewStatus = document.getElementById('previewStatus');
+
+      previewSisaDays.textContent = `${sync.sisaHari} Hari`;
+      previewEndDate.textContent = formatDate(sync.endDate.toISOString().split('T')[0]);
+      previewStatus.textContent = sync.status;
+
+      if (sync.status === 'COMPLETE') {
+        previewStatus.className = 'text-emerald-700 font-bold';
+      } else {
+        previewStatus.className = 'text-amber-700 font-bold';
+      }
+    }
+
+    function openModal(id = null) {
+      const modal = document.getElementById('itemModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const editItemId = document.getElementById('editItemId');
+      const form = document.getElementById('itemForm');
+
+      if (id) {
+        // Edit Mode
+        const item = items.find(i => i.id === id);
+        if (!item) return;
+
+        modalTitle.textContent = '[EDIT BARANG]';
+        editItemId.value = item.id;
+        document.getElementById('channel').value = item.channel;
+        document.getElementById('tglOrder').value = item.tglOrder || '2026-09-07';
+        document.getElementById('firstHand').value = item.firstHand;
+        document.getElementById('buyer').value = item.buyer;
+        document.getElementById('aplikasi').value = item.aplikasi;
+        document.getElementById('plan').value = item.plan;
+        document.getElementById('jenis').value = item.jenis;
+        document.getElementById('durasi').value = item.durasi;
+        document.getElementById('qty').value = item.qty;
+        document.getElementById('merkDevice').value = item.merkDevice || '';
+        document.getElementById('lokasi').value = item.lokasi || '';
+
+        if (item.merkDevice || item.lokasi) {
+          document.getElementById('formMoreContent').classList.remove('hidden');
+          document.getElementById('formMoreChevron').classList.add('rotate-180');
+        }
+      } else {
+        // Add Mode
+        modalTitle.textContent = '[TAMBAH BARANG]';
+        editItemId.value = '';
+        form.reset();
+        document.getElementById('tglOrder').value = '2026-09-07';
+        document.getElementById('durasi').value = '1 bulan';
+        document.getElementById('qty').value = '1';
+        document.getElementById('formMoreContent').classList.add('hidden');
+        document.getElementById('formMoreChevron').classList.remove('rotate-180');
+      }
+
+      calculateSync();
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('itemModal').classList.add('hidden');
+    }
+
+    function toggleFormMoreDetail() {
+      const content = document.getElementById('formMoreContent');
+      const chevron = document.getElementById('formMoreChevron');
+      content.classList.toggle('hidden');
+      chevron.classList.toggle('rotate-180');
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+
+      const editId = document.getElementById('editItemId').value;
+      const channel = document.getElementById('channel').value;
+      const tglOrder = document.getElementById('tglOrder').value;
+      const firstHand = document.getElementById('firstHand').value.trim();
+      const buyer = document.getElementById('buyer').value.trim();
+      const aplikasi = document.getElementById('aplikasi').value.trim();
+      const plan = document.getElementById('plan').value.trim();
+      const jenis = document.getElementById('jenis').value;
+      const durasi = document.getElementById('durasi').value.trim();
+      const qty = parseInt(document.getElementById('qty').value, 10) || 1;
+      const merkDevice = document.getElementById('merkDevice').value.trim();
+      const lokasi = document.getElementById('lokasi').value.trim();
+
+      if (editId) {
+        items = items.map(item => item.id === editId ? {
+          ...item,
+          channel,
+          tglOrder,
+          firstHand,
+          buyer,
+          aplikasi,
+          plan,
+          jenis,
+          durasi,
+          qty,
+          merkDevice,
+          lokasi
+        } : item);
+      } else {
+        const newItem = {
+          id: Date.now().toString(),
+          channel,
+          tglOrder,
+          firstHand,
+          buyer,
+          aplikasi,
+          plan,
+          jenis,
+          durasi,
+          qty,
+          merkDevice,
+          lokasi,
+          expanded: false
+        };
+        items.unshift(newItem);
+      }
+
+      saveState();
+      closeModal();
+      renderCards();
+    }
+
+    window.onload = function() {
+      renderCards();
+    }
+  </script>
+
+  <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-stone-500 text-xs sm:text-sm space-y-1.5">
+    <p>&copy; 2026 Monitoring App. All rights reserved.</p>
+    <p class="flex items-center justify-center gap-1.5 text-stone-500">
+      <span>made with 💝 by piyo &gt;.&lt;</span>
+    </p>
+    
+  </footer>
+</body>
+</html>
