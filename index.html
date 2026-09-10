@@ -249,7 +249,6 @@
     function updateClock() {
       const now = new Date();
       
-      // Format Hari, Tanggal Bulan Tahun
       const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
       const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
       
@@ -260,7 +259,6 @@
       
       const fullDateStr = `${dayName}, ${dateNum} ${monthName} ${year}`;
 
-      // Format Jam:Menit:Detik
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const seconds = String(now.getSeconds()).padStart(2, '0');
@@ -509,7 +507,10 @@
       `;
       grid.insertAdjacentHTML('beforeend', createNewCardHtml);
 
-      items.forEach(item => {
+      // Urutkan items berdasarkan tglOrder secara Descending (terbaru di atas)
+      const sortedItems = [...items].sort((a, b) => new Date(b.tglOrder) - new Date(a.tglOrder));
+
+      sortedItems.forEach(item => {
         const sync = calculateSyncData(item.tglOrder, item.durasi);
         item.sisaDurasiHari = sync.sisaHari;
         item.status = sync.status;
