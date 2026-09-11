@@ -135,6 +135,7 @@
             <select id="channel" required class="w-full bg-white border border-stone-300 text-stone-800 rounded-xl px-3.5 py-2.5 appearance-none focus:outline-none focus:ring-2 focus:ring-stone-400 font-medium">
               <option value="telegram">Telegram</option>
               <option value="whatsapp">WhatsApp</option>
+              <option value="whatsapp-bisnis">WhatsApp Bisnis</option>
               <option value="x">X (Twitter)</option>
             </select>
             <i data-lucide="chevron-down" class="w-4 h-4 absolute right-3 top-3 text-stone-400 pointer-events-none"></i>
@@ -360,6 +361,12 @@
             </svg>
           </div>
         `;
+      } else if (c === 'whatsapp-bisnis') {
+        return `
+          <div class="w-12 h-12 rounded-2xl bg-white border border-stone-200 flex items-center justify-center shadow-sm shrink-0 overflow-hidden p-1">
+            <img src="bisnis.png" alt="WhatsApp Bisnis" class="w-full h-full object-contain" onerror="this.onerror=null; this.parentNode.innerHTML='<span class=\'text-xs font-bold text-emerald-600\'>WA B</span>';">
+          </div>
+        `;
       } else {
         return `
           <div class="w-12 h-12 rounded-2xl bg-black flex items-center justify-center text-white shadow-sm shrink-0">
@@ -497,7 +504,7 @@
     }
 
     window.deleteItem = async function(id) {
-      if (confirm("Yakin ingin menghapus orderan ini?")) {
+      if (confirm("Yakin mau hapus orderannya?")) {
         try {
           await deleteDoc(doc(db, "orderan", id));
         } catch (error) {
